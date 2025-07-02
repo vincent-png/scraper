@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from app.app_runner import WebScraperApp
-from app.uploader import SupabaseUploader  # <-- Removed extra space
+from app.uploader import SupabaseUploader
+from app.models import ScraperInput  # <-- New input model
 
 from pathlib import Path
 
@@ -12,13 +13,13 @@ def health_check():
     return {"status": "online"}
 
 @app.post("/run")
-def run_scraper():
+def run_scraper(data: ScraperInput):
     try:
-        # Run scraper
-        scraper = WebScraperApp()
+        # Initialize and run scraper with parameters
+        scraper = WebScraperApp(url=data.url, category=data.category)
         output: Path = scraper.run()
 
-        # Upload to Supabase
+        # Upload CSV to Supabase
         uploader = SupabaseUploader()
         uploader.upload_file(output)
 
